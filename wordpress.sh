@@ -48,16 +48,20 @@ check_dependency() {
 
 install_dependency_wordpress() {
     # require of LAMP stack, will used other repo to cover on this part
-    git clone https://github.com/nn-df/linux-apache-mysql-php.git
-    cd linux-apache-mysql-php
-    sudo bash lamp.sh --no-reboot
+    if [ -d "linux-apache-mysql-php" ]; then
+        cd linux-apache-mysql-php
+        sudo bash lamp.sh --no-reboot
+    else
+        git clone https://github.com/nn-df/linux-apache-mysql-php.git
+        cd linux-apache-mysql-php
+        sudo bash lamp.sh --no-reboot
+    fi
 
 }
 
 main() {
     check_dependency
     install_dependency_wordpress
-
 }
 
 main
