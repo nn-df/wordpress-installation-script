@@ -5,6 +5,10 @@ install_service() {
 	apt -yq install $1
 }
 
+restart_service() {
+	systemctl restart $1 --no-pager
+}
+
 check_service_status() {
 	systemctl status $1 --no-pager
 }
@@ -48,6 +52,7 @@ check_dependency() {
 
 install_dependency_wordpress() {
     # require of LAMP stack, will used other repo to cover on this part
+    C_DIR=$(pwd)
     if [ -d "linux-apache-mysql-php" ]; then
         cd linux-apache-mysql-php
         sudo bash lamp.sh --no-reboot
@@ -56,12 +61,49 @@ install_dependency_wordpress() {
         cd linux-apache-mysql-php
         sudo bash lamp.sh --no-reboot
     fi
+    cd ${C_DIR}
+
+}
+
+install_wordpress() {
+    # download wordpress
+    wget https://wordpress.org/latest.tar.gz
+
+    # extract wordpress to new location
+    sudo tar -xvf latest.tar.gz -C /var/www/
+
+    # change wordpress to www-data user
+    sudo chown -R www-data:www-data /var/www/wordpress
+
+    echo "[+] Done config wordpress"
+}
+
+configure_apache() {
+    # copy new configuration file
+    cp apache/wordpress.conf /etc/apache2/sites-available/
+
+    # disable default apache site
+    sudo a2dissite 000-default
+
+    # enable wordpress vhost
+    sudo a2ensite wordpress
+
+    # enable apache module
+    sudo a2enmod rewrite
+
+    # restart apache
+    restart_service apache2
+
+    echo "[+] Done config apache2"
 
 }
 
 main() {
     check_dependency
     install_dependency_wordpress
+    install_wordpress
+    configure_apache
+    
 }
 
 main
