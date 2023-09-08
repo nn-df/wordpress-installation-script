@@ -98,12 +98,56 @@ configure_apache() {
 
 }
 
+configure_mysql() {
+    # get database name
+    DB_NAME=$(whiptail --title "Database Name" wordpress --inputbox "Database name : " 8 78 wordpress)
+    if [ -z "${DB_NAME}" ]
+        then
+            echo "Error occur!! Database name is needed!"
+        else
+            :
+    fi
+
+    DB_PASS=$(whiptail --passwordbox "Database Password" wordpress --inputbox "Database password : " 8 78)
+    if [ -z "${DB_PASS}" ]
+        then
+            echo "Error occur!! Password is needed!"
+        else
+            :
+    fi
+
+    # create db name
+  	mysql -e "CREATE DATABASE ${DB_NAME};"
+
+    # set password for db
+   	mysql -e "CREATE USER wordpress@localhost IDENTIFIED BY '${DB_PASS}';"
+
+    # grand user based on action
+    mysql -e "GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON ${DB_NAME}.* TO wordpress@localhost;"
+
+    # flush priviledges
+    mysql -i "FLUSH PRIVILEGES;"
+    
+    # restart mysql
+    restart_service mysql
+
+    # configure wordpress config file
+    sudo -u www-data cp /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
+    # change db name
+    sudo -u www-data sed -i 's/${DB_NAME}/wordpress/' /var/www/wordpress/wp-config.php
+    # change db pass
+    sudo -u www-data sed -i 's/${DB_PASS}/<your-password>/' /var/www/wordpress/wp-config.php
+
+    echo "[+] Done config mysql"
+
+}
+
 main() {
     check_dependency
     install_dependency_wordpress
     install_wordpress
     configure_apache
-    
+    configure_mysql
 }
 
 main
