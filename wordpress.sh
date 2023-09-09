@@ -134,11 +134,11 @@ configure_mysql() {
     # configure wordpress config file
     sudo -u www-data cp /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
     # change db name
-    sudo -u www-data sed -i 's/database_name_here/${DB_NAME}/' /var/www/wordpress/wp-config.php
+    sudo -u www-data sed -i "s/database_name_here/${DB_NAME}/" /var/www/wordpress/wp-config.php
     # change user name
-    sudo -u www-data sed -i 's/username_here/wordpress/' /var/www/wordpress/wp-config.php
+    sudo -u www-data sed -i "s/username_here/wordpress/" /var/www/wordpress/wp-config.php
     # change db pass
-    sudo -u www-data sed -i 's/password_here/${DB_PASS}/' /var/www/wordpress/wp-config.php
+    sudo -u www-data sed -i "s/password_here/${DB_PASS}/" /var/www/wordpress/wp-config.php
 
     echo "[+] Done config mysql"
 
