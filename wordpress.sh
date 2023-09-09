@@ -5,6 +5,10 @@ install_service() {
 	apt -yq install $1
 }
 
+restart_service() {
+	systemctl restart $1 --no-pager
+}
+
 check_service_status() {
 	systemctl status $1 --no-pager
 }
@@ -48,6 +52,7 @@ check_dependency() {
 
 install_dependency_wordpress() {
     # require of LAMP stack, will used other repo to cover on this part
+    C_DIR=$(pwd)
     if [ -d "linux-apache-mysql-php" ]; then
         cd linux-apache-mysql-php
         sudo bash lamp.sh --no-reboot
@@ -56,12 +61,95 @@ install_dependency_wordpress() {
         cd linux-apache-mysql-php
         sudo bash lamp.sh --no-reboot
     fi
+    cd ${C_DIR}
+
+}
+
+install_wordpress() {
+    # download wordpress
+    wget https://wordpress.org/latest.tar.gz
+
+    # extract wordpress to new location
+    sudo tar -xvf latest.tar.gz -C /var/www/
+
+    # change wordpress to www-data user
+    sudo chown -R www-data:www-data /var/www/wordpress
+
+    echo "[+] Done config wordpress"
+}
+
+configure_apache() {
+    # copy new configuration file
+    cp apache/wordpress.conf /etc/apache2/sites-available/
+
+    # disable default apache site
+    sudo a2dissite 000-default
+
+    # enable wordpress vhost
+    sudo a2ensite wordpress
+
+    # enable apache module
+    sudo a2enmod rewrite
+
+    # restart apache
+    restart_service apache2
+
+    echo "[+] Done config apache2"
+
+}
+
+configure_mysql() {
+    # get database name
+    DB_NAME=$(whiptail --title "Database Name" --inputbox "Database name : " 8 78 wordpress 3>&1 1>&2 2>&3)
+    if [ -z "${DB_NAME}" ]
+        then
+            echo "Error occur!! Database name is needed!"
+        else
+            :
+    fi
+
+    DB_PASS=$(whiptail --title "Database Password" --passwordbox "Database password : " 8 78 3>&1 1>&2 2>&3)
+    if [ -z "${DB_PASS}" ]
+        then
+            echo "Error occur!! Password is needed!"
+        else
+            :
+    fi
+
+    # create db name
+  	mysql -e "CREATE DATABASE ${DB_NAME};"
+
+    # set password for db
+   	mysql -e "CREATE USER wordpress@localhost IDENTIFIED BY '${DB_PASS}';"
+
+    # grand user based on action
+    mysql -e "GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON ${DB_NAME}.* TO wordpress@localhost;"
+
+    # flush priviledges
+    mysql -e "FLUSH PRIVILEGES;"
+    
+    # restart mysql
+    restart_service mysql
+
+    # configure wordpress config file
+    sudo -u www-data cp /var/www/wordpress/wp-config-sample.php /var/www/wordpress/wp-config.php
+    # change db name
+    sudo -u www-data sed -i "s/database_name_here/${DB_NAME}/" /var/www/wordpress/wp-config.php
+    # change user name
+    sudo -u www-data sed -i "s/username_here/wordpress/" /var/www/wordpress/wp-config.php
+    # change db pass
+    sudo -u www-data sed -i "s/password_here/${DB_PASS}/" /var/www/wordpress/wp-config.php
+
+    echo "[+] Done config mysql"
 
 }
 
 main() {
     check_dependency
     install_dependency_wordpress
+    install_wordpress
+    configure_apache
+    configure_mysql
 }
 
 main
