@@ -126,7 +126,7 @@ configure_mysql() {
     mysql -e "GRANT SELECT,INSERT,UPDATE,DELETE,CREATE,DROP,ALTER ON ${DB_NAME}.* TO wordpress@localhost;"
 
     # flush priviledges
-    mysql -i "FLUSH PRIVILEGES;"
+    mysql -e "FLUSH PRIVILEGES;"
     
     # restart mysql
     restart_service mysql
