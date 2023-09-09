@@ -136,7 +136,7 @@ configure_mysql() {
     # change db name
     sudo -u www-data sed -i 's/database_name_here/${DB_NAME}/' /var/www/wordpress/wp-config.php
     # change user name
-    sudo -u www-data sed -i 's/username_here/wordpress/' /srv/www/wordpress/wp-config.php
+    sudo -u www-data sed -i 's/username_here/wordpress/' /var/www/wordpress/wp-config.php
     # change db pass
     sudo -u www-data sed -i 's/password_here/${DB_PASS}/' /var/www/wordpress/wp-config.php
 
