@@ -100,7 +100,7 @@ configure_apache() {
 
 configure_mysql() {
     # get database name
-    DB_NAME=$(whiptail --title "Database Name" --inputbox "Database name : " 8 78 wordpress)
+    DB_NAME=$(whiptail --title "Database Name" --inputbox "Database name : " 8 78 wordpress 3>&1 1>&2 2>&3)
     if [ -z "${DB_NAME}" ]
         then
             echo "Error occur!! Database name is needed!"
@@ -108,7 +108,7 @@ configure_mysql() {
             :
     fi
 
-    DB_PASS=$(whiptail --passwordbox "Database Password" --inputbox "Database password : " 8 78)
+    DB_PASS=$(whiptail --title "Database Password" --passwordbox "Database password : " 8 78 3>&1 1>&2 2>&3)
     if [ -z "${DB_PASS}" ]
         then
             echo "Error occur!! Password is needed!"
